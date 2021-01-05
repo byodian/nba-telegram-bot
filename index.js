@@ -7,6 +7,7 @@ const app = express();
 
 // eslint-disable-next-line no-undef
 const NBA_KEY = process.env.NBA_KEY;
+const PORT = process.env.PORT || 3000;
 const BOT_TOKEN = process.env.BOT_TOKEN || '';
 const URL = process.env.URL || 'https://nbtelegrambot.herokuapp.com';
 
@@ -99,5 +100,5 @@ app.get('/', (req, res) => {
 })
 
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`)j;
-}
+  console.log(`Server running on port ${PORT}`);
+})
