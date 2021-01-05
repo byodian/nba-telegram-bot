@@ -7,4 +7,4 @@ bot.start(ctx => {
   ctx.reply('Welcome');
 });
 
-moudle.exports = bot;
+module.exports = bot;
