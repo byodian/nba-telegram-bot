@@ -31,17 +31,24 @@ const getCurrentDate = function() {
 
 // eslint-disable-next-line no-undef
 const bot = new Telegraf(BOT_TOKEN);
-bot.telegram.setWebhook(`${URL}/bot${BOT_TOKEN}`);
-app.use(bot.webhookCallback(`/bot${BOT_TOKEN}`));
+const development = function() {
+  console.log('Bot run in development mode');
+  console.log('Deleting webhook');
+  bot.telegram.deleteWebhook();
+  console.log('Starting polling');
+  bot.startPolling();
+}
 
-bot.on('sticker', (ctx) => ctx.reply('123'));
-bot.hears('hi', (ctx) => {
-  ctx.reply('Hey there');
-});
+const production = function() {
+  console.log('Bot run in production mode');
+  bot.telegram.setWebhook(`${URL}/bot${BOT_TOKEN}`);
+  app.use(bot.webhookCallback(`/bot${BOT_TOKEN}`));
+}
 
 bot.help((ctx) => ctx.reply('send me a sticker'));
-bot.command('today', (ctx) => {
 
+bot.command('today', (ctx) => {
+  console.log('Bot run in development mode');
   const options = {
     method: 'GET',
     url: `https://api-nba-v1.p.rapidapi.com/games/date/${getCurrentDate()}`,
@@ -94,6 +101,8 @@ bot.command('live', (ctx) => {
 bot.command('players', ctx => {
   ctx.reply('敬请期待！');
 })
+
+process.env.NODE_ENV === 'production' ? production() : development();
 
 app.get('/', (req, res) => {
   res.send('Hello World!');
