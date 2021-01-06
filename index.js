@@ -49,6 +49,7 @@ bot.help((ctx) => ctx.reply('send me a sticker'));
 
 bot.command('today', (ctx) => {
   console.log('Bot run in development mode');
+  console.log(now);
   const options = {
     method: 'GET',
     url: `https://api-nba-v1.p.rapidapi.com/games/date/${getCurrentDate()}`,
