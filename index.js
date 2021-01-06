@@ -48,8 +48,6 @@ const production = function() {
 bot.help((ctx) => ctx.reply('send me a sticker'));
 
 bot.command('today', (ctx) => {
-  console.log('Bot run in development mode');
-  console.log(now);
   const options = {
     method: 'GET',
     url: `https://api-nba-v1.p.rapidapi.com/games/date/${getCurrentDate()}`,
@@ -59,9 +57,9 @@ bot.command('today', (ctx) => {
     }
   };
 
-  axios.request(options).then((response) => {
-    let replyText = `<code>Visiting Team VS Home Team (Status)</code>\n\n`;
+  let replyText = `<code>Visiting Team VS Home Team (Status)</code>\n\n`;
 
+  axios.request(options).then((response) => {
     const { games } = response.data.api;
 
     games.forEach(game => {
@@ -69,6 +67,7 @@ bot.command('today', (ctx) => {
       replyText += `<code>${vTeam.nickName} ${vTeam.score.points} - ${hTeam.score.points} ${hTeam.nickName}</code> <code>(${game.statusGame}) </code>\n\n`;
     })
 
+    console.log(replyText);
     ctx.reply(replyText, {
       parse_mode: 'HTML'
     });
