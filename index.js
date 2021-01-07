@@ -57,9 +57,10 @@ bot.command('today',(ctx, next) => {
       }
     };
 
-    let replyText = `<code>Visiting Team VS Home Team (Status)</code>\n\n`;
+    const title = `<b>今日NBA赛事情况</b>`;
 
     axios.request(options).then((response) => {
+      const replyText = `<code>Visiting Team VS Home Team (Status)</code>\n\n`
       const { games } = response.data.api;
 
       games.forEach(game => {
@@ -72,10 +73,11 @@ bot.command('today',(ctx, next) => {
       console.error(error);
     });
 
-    ctx.replyWithHTML(replyText);
+    ctx.replyWithHTML(title);
 })
 
 bot.command('standings', (ctx) => {
+  const title = 'NBA积分情况'
 
   const options = {
     method: 'GET',
@@ -92,7 +94,7 @@ bot.command('standings', (ctx) => {
     console.error(error);
   });
 
-  console.log('Running command request');
+  ctx.reply(title);
 })
 
 bot.command('live', (ctx) => {
