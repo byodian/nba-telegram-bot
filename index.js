@@ -75,6 +75,7 @@ bot.use((ctx, next) => {
 })
 
 bot.command('today', (ctx) => {
+  console.log(ctx.state.games);
   return ctx.replyWithHTML(ctx.state.games);
 })
 
