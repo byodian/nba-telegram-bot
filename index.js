@@ -47,7 +47,7 @@ const production = function() {
 
 bot.help((ctx) => ctx.reply('send me a sticker'));
 
-bot.use((ctx, next) => {
+bot.command('today',(ctx, next) => {
   const options = {
       method: 'GET',
       url: `https://api-nba-v1.p.rapidapi.com/games/date/${getCurrentDate()}`,
@@ -65,18 +65,14 @@ bot.use((ctx, next) => {
       games.forEach(game => {
         const { vTeam, hTeam } = game;
         replyText += `<code>${vTeam.nickName} ${vTeam.score.points} - ${hTeam.score.points} ${hTeam.nickName}</code> <code>(${game.statusGame}) </code>\n\n`;
+
+        ctx.replyWithHTML(replyText);
+        console.log(ctx.replyWithHTML(replyText));
       })
 
-      ctx.state.games = replyText;
-      return next();
     }).catch((error) => {
       console.error(error);
     });
-})
-
-bot.command('today', (ctx) => {
-  console.log(ctx.state.games);
-  return ctx.replyWithHTML(ctx.state.games);
 })
 
 bot.command('standings', (ctx) => {
