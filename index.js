@@ -57,15 +57,15 @@ bot.command('today',(ctx, next) => {
       }
     };
 
-    const title = `<b>今日NBA赛事情况</b>`;
+    const title = `<b>🏀今日NBA赛事情况</b>`;
 
     axios.request(options).then((response) => {
-      const replyText = `<code>Visiting Team VS Home Team (Status)</code>\n\n`
+      let replyText = `<code>Visiting Team VS Home Team (Status)</code>\n\n`
       const { games } = response.data.api;
 
       games.forEach(game => {
         const { vTeam, hTeam } = game;
-        replyText += `<code>${vTeam.nickName} ${vTeam.score.points} - ${hTeam.score.points} ${hTeam.nickName}</code> <code>(${game.statusGame}) </code>\n\n`;
+        replyText += `<code>🔥 ${vTeam.nickName} ${vTeam.score.points} - ${hTeam.score.points} ${hTeam.nickName}</code> <code>(${game.statusGame}) </code>\n\n`;
       })
       ctx.replyWithHTML(replyText);
       return next();
@@ -77,7 +77,7 @@ bot.command('today',(ctx, next) => {
 })
 
 bot.command('standings', (ctx) => {
-  const title = 'NBA积分情况'
+  const title = '🚀NBA积分情况'
 
   const options = {
     method: 'GET',
