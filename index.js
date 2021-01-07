@@ -66,14 +66,13 @@ bot.command('today',(ctx, next) => {
         const { vTeam, hTeam } = game;
         replyText += `<code>${vTeam.nickName} ${vTeam.score.points} - ${hTeam.score.points} ${hTeam.nickName}</code> <code>(${game.statusGame}) </code>\n\n`;
       })
-      
-      ctx.reply(replyText, {
-        parse_mode: 'HTML'
-      })
+      ctx.replyWithHTML(replyText);
       return next();
     }).catch((error) => {
       console.error(error);
     });
+
+    ctx.replyWithHTML(replyText);
 })
 
 bot.command('standings', (ctx) => {
