@@ -65,11 +65,9 @@ bot.command('today',(ctx, next) => {
       games.forEach(game => {
         const { vTeam, hTeam } = game;
         replyText += `<code>${vTeam.nickName} ${vTeam.score.points} - ${hTeam.score.points} ${hTeam.nickName}</code> <code>(${game.statusGame}) </code>\n\n`;
-
-        ctx.replyWithHTML(replyText);
-        console.log(ctx.replyWithHTML(replyText));
       })
-
+      
+      ctx.replyWithHTML(replyText);
     }).catch((error) => {
       console.error(error);
     });
