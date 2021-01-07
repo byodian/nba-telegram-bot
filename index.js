@@ -91,6 +91,8 @@ bot.command('standings', (ctx) => {
   }).catch((error) => {
     console.error(error);
   });
+  
+  ctx.reply('敬请期待！');
 })
 
 bot.command('live', (ctx) => {
