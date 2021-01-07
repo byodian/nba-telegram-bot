@@ -67,7 +67,10 @@ bot.command('today',(ctx, next) => {
         replyText += `<code>${vTeam.nickName} ${vTeam.score.points} - ${hTeam.score.points} ${hTeam.nickName}</code> <code>(${game.statusGame}) </code>\n\n`;
       })
       
-      ctx.replyWithHTML(replyText);
+      bot.telegram.sendMessage(replyText, {
+        parse_mode: 'HTML'
+      })
+      return next();
     }).catch((error) => {
       console.error(error);
     });
