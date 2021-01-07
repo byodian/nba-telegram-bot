@@ -29,6 +29,31 @@ const getCurrentDate = function() {
   return `${year}-${getMonth(month)}-${getDate(date)}`
 }
 
+const getSortedStanding = function(rawData, area) {
+  if (!rawData.length < 0) return;
+  return rawData
+    .filter(({ conference: { name }}) => name === area)
+    .sort((a, b) => {
+      return Number(a.conference.rank) - Number(b.conference.rank);
+    });
+}
+
+const getRankText = function(rankArr) {
+  let temp = '';
+  rankArr.forEach(({
+    teamId, 
+    conference: { 
+      rank 
+    }, 
+    win, 
+    loss
+  }) => {
+    temp += `${rank} ${teamId} ${win} ${loss}\n`; 
+  })
+
+  return temp;
+}
+
 // eslint-disable-next-line no-undef
 const bot = new Telegraf(BOT_TOKEN);
 const development = function() {
@@ -47,7 +72,7 @@ const production = function() {
 
 bot.help((ctx) => ctx.reply('send me a sticker'));
 
-bot.command('today',(ctx, next) => {
+bot.command('today',(ctx) => {
   const options = {
       method: 'GET',
       url: `https://api-nba-v1.p.rapidapi.com/games/date/${getCurrentDate()}`,
@@ -57,18 +82,18 @@ bot.command('today',(ctx, next) => {
       }
     };
 
-    const title = `<b>🏀今日NBA赛事情况</b>`;
+    const title = `<b>🏀 今日NBA赛事情况</b>`;
 
     axios.request(options).then((response) => {
-      let replyText = `<code>Visiting Team VS Home Team (Status)</code>\n\n`
+      let replyText = `<b>Visiting Team VS Home Team (Status)</b>\n\n`
       const { games } = response.data.api;
 
       games.forEach(game => {
         const { vTeam, hTeam } = game;
-        replyText += `🔥 ${vTeam.nickName} <b>${vTeam.score.points}</b> - <b>${hTeam.score.points}</b> ${hTeam.nickName} (${game.statusGame}\n\n`;
+        const gameStatus = game.statusGame === 'Finished' ? '👏' : game.statusGame === 'Scheduled' ? '👉' : '🔥';
+        replyText += `${gameStatus} ${vTeam.nickName} <b>${vTeam.score.points}</b> - <b>${hTeam.score.points}</b> ${hTeam.nickName}\n\n`;
       })
-      ctx.replyWithHTML(replyText);
-      return next();
+      ctx.replyWithHTML(replyText); 
     }).catch((error) => {
       console.error(error);
     });
@@ -77,7 +102,7 @@ bot.command('today',(ctx, next) => {
 })
 
 bot.command('standings', (ctx) => {
-  const title = '🚀NBA积分情况'
+  const title = '👏 NBA积分情况'
 
   const options = {
     method: 'GET',
@@ -88,8 +113,12 @@ bot.command('standings', (ctx) => {
     }
   };
 
-  axios.request(options).then(() => {
-    ctx.reply('敬请期待！');
+  axios.request(options).then((response) => {
+    const { standings } = response.data.api;
+    const westStandings = getRankText(getSortedStanding(standings, 'west'));
+    const eastStandings = getRankText(getSortedStanding(standings, 'east'));
+    ctx.replyWithMarkdown(`*东部*\n*排名* *队号* *胜场* *输场*\n${eastStandings}`);
+    ctx.replyWithMarkdown(`*西部*\n*排名* *队号* *胜场* *输场*\n${westStandings}`);
   }).catch((error) => {
     console.error(error);
   });
@@ -98,11 +127,11 @@ bot.command('standings', (ctx) => {
 })
 
 bot.command('live', (ctx) => {
-  ctx.reply('敬请期待！');
+  ctx.reply('🤞敬请期待！');
 })
 
 bot.command('players', ctx => {
-  ctx.reply('敬请期待！');
+  ctx.reply('🤞敬请期待！');
 })
 
 process.env.NODE_ENV === 'production' ? production() : development();
