@@ -67,7 +67,7 @@ bot.command('today',(ctx, next) => {
         replyText += `<code>${vTeam.nickName} ${vTeam.score.points} - ${hTeam.score.points} ${hTeam.nickName}</code> <code>(${game.statusGame}) </code>\n\n`;
       })
       
-      bot.telegram.sendMessage('1463159310', replyText, {
+      ctx.reply(replyText, {
         parse_mode: 'HTML'
       })
       return next();
