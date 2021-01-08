@@ -97,7 +97,7 @@ bot.command('players', ctx => {
 })
 
 bot.command('currenttime', ctx => {
-  ctx.reply(getCurrentDate());
+  ctx.reply(new Date());
 })
 
 bot.start(ctx => {
