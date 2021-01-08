@@ -1,6 +1,6 @@
 require('dotenv').config();
 const { Telegraf } = require('telegraf');
-const { enTeams, cnTeams, getSortedStanding, getTeamsRank } = require('./src/helper/helper.js');
+const { enTeams, cnTeams, getSortedStanding, getTeamsRank, getCurrentDate} = require('./src/helper/helper.js');
 const moment = require('moment');
 const axios = require('axios');
 const express = require('express');
@@ -13,7 +13,7 @@ const PORT = process.env.PORT || 3000;
 const BOT_TOKEN = process.env.BOT_TOKEN || '';
 const URL = process.env.URL || '';
 
-console.log('当前时间： ' + moment().locale('zh-cn').format());
+console.log('当前时间： ' + getCurrentDate());
 
 // eslint-disable-next-line no-undef
 const bot = new Telegraf(BOT_TOKEN);
@@ -36,7 +36,7 @@ bot.help((ctx) => ctx.reply('send me a sticker'));
 bot.command('games',(ctx) => {
   const options = {
       method: 'GET',
-      url: `https://api-nba-v1.p.rapidapi.com/games/date/${moment().locale('zh-cn').format('YYYY-MM-DD')}`,
+      url: `https://api-nba-v1.p.rapidapi.com/games/date/${getCurrentDate()}`,
       headers: {
         'x-rapidapi-key': NBA_KEY,
         'x-rapidapi-host': 'api-nba-v1.p.rapidapi.com'
@@ -97,7 +97,7 @@ bot.command('players', ctx => {
 })
 
 bot.command('currenttime', ctx => {
-  ctx.reply(moment().format());
+  ctx.reply(getCurrentDate());
 })
 
 bot.start(ctx => {

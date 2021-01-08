@@ -158,4 +158,5 @@ module.exports = {
   cnTeams,
   getSortedStanding,
   getTeamsRank,
+  getCurrentDate
 };
