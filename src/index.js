@@ -1,10 +1,10 @@
 require('dotenv').config();
 const { Telegraf } = require('telegraf');
-const { enTeams, cnTeams, getSortedStanding, getTeamsRank, getCurrentDate} = require('./src/helper/helper.js');
-const moment = require('moment');
+const { helper } = require('./helper');
+const { config } = require('./config');
+const { commands } = require('./commands');
 const axios = require('axios');
 const express = require('express');
-
 const app = express();
 
 // eslint-disable-next-line no-undef
@@ -13,7 +13,7 @@ const PORT = process.env.PORT || 3000;
 const BOT_TOKEN = process.env.BOT_TOKEN || '';
 const URL = process.env.URL || '';
 
-console.log('当前时间： ' + getCurrentDate());
+console.log('当前时间： ' + helper.getLocalMoment());
 
 // eslint-disable-next-line no-undef
 const bot = new Telegraf(BOT_TOKEN);
@@ -34,28 +34,14 @@ const production = function() {
 bot.help((ctx) => ctx.reply('send me a sticker'));
 
 bot.command('games',(ctx) => {
-  const options = {
-      method: 'GET',
-      url: `https://api-nba-v1.p.rapidapi.com/games/date/${getCurrentDate()}`,
-      headers: {
-        'x-rapidapi-key': NBA_KEY,
-        'x-rapidapi-host': 'api-nba-v1.p.rapidapi.com'
-      }
-    };
-
+    const options = helper.getRequestOptions(`/games/date/${helper.getLocalMoment()}`, NBA_KEY);
     const title = `<b>🏀 今日NBA赛事情况</b>`;
 
     axios.request(options).then((response) => {
-      let replyText = `<b>客队 VS 主队</b>\n\n`
+      let markup = `<b>客队 VS 主队</b>\n\n`
       const { games } = response.data.api;
-
-      games.forEach(game => {
-        const { vTeam, hTeam } = game;
-        const gameStatus = game.statusGame === 'Finished' ? '👏' : game.statusGame === 'Scheduled' ? '👉' : '🔥';
-
-        replyText += `${gameStatus} ${cnTeams[vTeam.nickName]} <b>${vTeam.score.points}</b> - <b>${hTeam.score.points}</b> ${cnTeams[hTeam.nickName]}\n\n`;
-      })
-      ctx.replyWithHTML(replyText); 
+      markup += commands.renderWithHTML(games, config.cn);
+      ctx.replyWithHTML(markup); 
     }).catch((error) => {
       console.error(error);
     });
@@ -77,8 +63,8 @@ bot.command('standings', (ctx) => {
 
   axios.request(options).then((response) => {
     const { standings } = response.data.api;
-    const westStandings = getTeamsRank(getSortedStanding(standings, 'west'), enTeams, cnTeams);
-    const eastStandings = getTeamsRank(getSortedStanding(standings, 'east'), enTeams, cnTeams);
+    const westStandings = helper.getSortedTeams(helper.sortStandings(standings, 'west'), config.en, config.cn);
+    const eastStandings = helper.getSortedTeams(helper.sortStandings(standings, 'east'), config.en, config.cn);
     ctx.replyWithMarkdown(`*东部*\n*No.*  *胜*  *负* *胜率* *队名*\n\`${eastStandings}\``);
     ctx.replyWithMarkdown(`*西部*\n*No.*  *胜*  *负* *胜率* *队名*\n\`${westStandings}\``);
   }).catch((error) => {
