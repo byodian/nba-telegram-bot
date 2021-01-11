@@ -5,6 +5,8 @@ const { config } = require('./config');
 const { commands } = require('./commands');
 const axios = require('axios');
 const express = require('express');
+const { response } = require('express');
+const { SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION } = require('constants');
 const app = express();
 
 // eslint-disable-next-line no-undef
@@ -51,15 +53,7 @@ bot.command('games',(ctx) => {
 
 bot.command('standings', (ctx) => {
   const title = '👏 NBA积分情况'
-
-  const options = {
-    method: 'GET',
-    url: 'https://api-nba-v1.p.rapidapi.com/standings/standard/2020',
-    headers: {
-      'x-rapidapi-key': NBA_KEY,
-      'x-rapidapi-host': 'api-nba-v1.p.rapidapi.com'
-    }
-  };
+  const options = helper.getRequestOptions(`/standings/standard/2020`, NBA_KEY);
 
   axios.request(options).then((response) => {
     const { standings } = response.data.api;
@@ -74,7 +68,31 @@ bot.command('standings', (ctx) => {
   ctx.reply(title);
 })
 
-bot.command('live', (ctx) => {
+bot.command('live', async (ctx) => {
+  const title = 'NBA比赛数据';
+  const teamIdOptions = helper.getRequestOptions(`/games/date/${helper.getLocalMoment()}`, NBA_KEY);
+
+  const response = await axios.request(teamIdOptions);
+  const games = await response.data.api.games;
+  const gameIds = games.map(game => game.gameId);
+  setTimeout(() => {
+    gameIds.forEach(async gameId => {
+      const options = helper.getRequestOptions(`/gameDetails/${gameId}`, NBA_KEY);
+      const response = await axios.request(options);
+      const { 
+        city,
+        leadChanges,
+        currentPeriod,
+        clock,
+        statusGame,
+        vTeams,
+        hTeam
+      } = await response.data.api.game[0];
+      
+      ctx.reply(`${vTeams.nickname}-${hTeam.nickname} ${currentPeriod} ${clock}`)
+    });
+  }, 0)
+  
   ctx.reply('🤞敬请期待！');
 })
 
@@ -83,7 +101,9 @@ bot.command('players', ctx => {
 })
 
 bot.command('currenttime', ctx => {
-  ctx.reply(new Date());
+  const { hours: UTCHours, minutes: UTCMinutes } = helper.getUTCMoment();
+  const { hours: GMTHours, minutes: GMTMinutes } = helper.getGMTMoment();
+  ctx.reply(`世界标准时间 ${UTCHours}:${helper.formatDate(UTCMinutes)} | 中国时间 ${GMTHours}:${helper.formatDate(GMTMinutes)}`);
 })
 
 bot.start(ctx => {

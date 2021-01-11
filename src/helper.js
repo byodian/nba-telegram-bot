@@ -77,6 +77,14 @@ const helper = {
     };
   },
 
+  getGMTMoment: (offset = 8) => {
+    if (!offset === 'number') return;
+    return {
+      hours: helper.getUTCMoment().hours + offset,
+      minutes: helper.getUTCMoment().minutes
+    }
+  },
+
   formatDate: (num, delimeter = 10) => {
     if (!typeof num === "number") return;
     if (!typeof delimeter === "number") return;
@@ -87,13 +95,17 @@ const helper = {
     if (!typeof timeOffset === "number") return;
     if (!typeof utcMoment === "object") return;
 
-    var { year, month, dayOfMonth: day, hours } = helper.getUTCMoment();
+    let formatDay = '';
+    const { year, month, dayOfMonth: day, hours } = helper.getUTCMoment();
 
+    const formatMonth = helper.formatDate(month + 1);
     if (hours < 24 - timeOffset) {
-      return `${year}-${helper.formatDate(month + 1)}-${helper.formatDate(day)}`;
+      formatDay = helper.formatDate(day); 
     } else {
-      return `${year}-${month + 1}-${day + 1}`;
+      formatDay = helper.formatDate(day + 1);
     }
+
+    return `${year}-${formatMonth}-${formatDay}`
   },
 };
 

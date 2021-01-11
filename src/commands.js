@@ -20,12 +20,12 @@ const commands = {
   renderWithHTML: (games, trans) =>
     games
       .map(
-        ({ vTeam, hTeam, statusGame }) =>
+        ({ vTeam, hTeam, statusGame, clock, }) =>
           `${commands.getGameStatus(statusGame)} ${trans[vTeam["nickName"]]} <b>${
             vTeam.score.points
           }</b> - <b>${hTeam.score.points}</b> ${trans[hTeam["nickName"]]}`
       )
-      .join('\n\n')
+      .join('\n\n'),
 
   //
   // players
@@ -38,6 +38,7 @@ const commands = {
   //
   // standings
   //
+
 }
 
 module.exports.commands = commands;
