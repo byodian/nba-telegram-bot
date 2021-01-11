@@ -33,6 +33,17 @@ const production = function() {
   app.use(bot.webhookCallback(`/bot${BOT_TOKEN}`));
 }
 
+bot.use(async (ctx, next) => {
+  const teamIdOptions = helper.getRequestOptions(`/games/date/${helper.getLocalMoment()}`, NBA_KEY);
+  const response = await axios.request(teamIdOptions);
+  ctx.state.games = await response.data.api.games;
+  return next()
+})
+
+bot.context.db = {
+  getScores: () => { return 42 }
+}
+
 bot.help((ctx) => ctx.reply('send me a sticker'));
 
 bot.command('games',(ctx) => {
@@ -70,30 +81,49 @@ bot.command('standings', (ctx) => {
 
 bot.command('live', async (ctx) => {
   const title = 'NBA比赛数据';
-  const teamIdOptions = helper.getRequestOptions(`/games/date/${helper.getLocalMoment()}`, NBA_KEY);
+  try {
+    const games =  ctx.state.games;
+    const gameIds = games.map(game => game.gameId);
+    console.log(gameIds);
+    setTimeout(async () => {
+        const options = helper.getRequestOptions(`/gameDetails/${gameIds[1]}`, NBA_KEY);
+        const response = await axios.request(options);
+        const { 
+          city,
+          leadChanges,
+          currentPeriod,
+          clock,
+          statusGame,
+          vTeam: {
+            nickname: vNickname,
+            shortName: vShortname,
+            score: {
+              linescore: vLinescore,
+              points: vPoints
+            }
+          },
+          hTeam: {
+            nickname: hNickname,
+            shortName: hShortname,
+            score: {
+              linescore: hLinescore,
+              points: hPoints
+            }
+          }
+        } = await response.data.api.game[0];
 
-  const response = await axios.request(teamIdOptions);
-  const games = await response.data.api.games;
-  const gameIds = games.map(game => game.gameId);
-  setTimeout(() => {
-    gameIds.forEach(async gameId => {
-      const options = helper.getRequestOptions(`/gameDetails/${gameId}`, NBA_KEY);
-      const response = await axios.request(options);
-      const { 
-        city,
-        leadChanges,
-        currentPeriod,
-        clock,
-        statusGame,
-        vTeams,
-        hTeam
-      } = await response.data.api.game[0];
-      
-      ctx.reply(`${vTeams.nickname}-${hTeam.nickname} ${currentPeriod} ${clock}`)
-    });
-  }, 0)
-  
-  ctx.reply('🤞敬请期待！');
+        const headings = `*${config.cn[vNickname]}  ${vPoints} - ${hPoints} ${config.cn[hNickname]}*\n`;
+        const statusPeriod = `\`${commands.getCurrentPeriod(statusGame, currentPeriod)} ${clock}\`\n`;
+        const linescoreH = `\`Team${commands.formatTextPeriod(helper.padStartStr)}\`\n`;
+        const v = `\`${vShortname} ${commands.getLineScore(vLinescore)}\`\n`;
+        const h = `\`${hShortname} ${commands.getLineScore(hLinescore)}\`\n`;
+        const replyHTML = `${headings}${statusPeriod}${linescoreH}${v}${h}`;
+        ctx.replyWithMarkdown(replyHTML);
+    }, 0)
+  } catch (e) {
+    console.log(e);
+  }
+  ctx.reply(`${title}`);
 })
 
 bot.command('players', ctx => {
@@ -109,6 +139,11 @@ bot.command('currenttime', ctx => {
 bot.start(ctx => {
   ctx.reply(`获取NBA当天比赛场次、东西部排名以及比赛详细数据等。\n\n👏 /\games - 获取当天比赛场次\n 👏 /\standings - 获取东西部排名`);
 });
+
+bot.on('text', (ctx) => {
+  const scores = ctx.db.getScores(ctx.message.chat.id)
+  return ctx.reply(`${ctx.state.role}: ${scores}`)
+})
 
 process.env.NODE_ENV === 'production' ? production() : development();
 

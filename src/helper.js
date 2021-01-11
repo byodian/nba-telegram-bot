@@ -46,8 +46,12 @@ const helper = {
       });
   },
 
-  padEndStr: function (str, num = 9, delimeter = " ") {
+  padEndStr: (str, num = 9, delimeter = ' ') => {
     return Number(str) <= num ? str.padEnd(2, delimeter) : str;
+  },
+
+  padStartStr: (str, len = 1, delimeter = ' ') => {
+    return str.length <= len ? str.padStart(2, delimeter) : str;
   },
 
   /**
@@ -107,6 +111,7 @@ const helper = {
 
     return `${year}-${formatMonth}-${formatDay}`
   },
+
 };
 
 module.exports.helper = helper;
