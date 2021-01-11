@@ -37,6 +37,7 @@ bot.use(async (ctx, next) => {
   const teamIdOptions = helper.getRequestOptions(`/games/date/${helper.getLocalMoment()}`, NBA_KEY);
   const response = await axios.request(teamIdOptions);
   ctx.state.games = await response.data.api.games;
+  ctx.state.gameIds = ctx.state.games.map(game => game.gameId);
   return next()
 })
 
@@ -47,19 +48,15 @@ bot.context.db = {
 bot.help((ctx) => ctx.reply('send me a sticker'));
 
 bot.command('games',(ctx) => {
-    const options = helper.getRequestOptions(`/games/date/${helper.getLocalMoment()}`, NBA_KEY);
     const title = `<b>🏀 今日NBA赛事情况</b>`;
-
-    axios.request(options).then((response) => {
-      let markup = `<b>客队 VS 主队</b>\n\n`
-      const { games } = response.data.api;
-      markup += commands.renderWithHTML(games, config.cn);
-      ctx.replyWithHTML(markup); 
-    }).catch((error) => {
-      console.error(error);
-    });
-
-    ctx.replyWithHTML(title);
+    try {
+        ctx.replyWithHTML(title);
+        let markup = `<b>客队 VS 主队</b>\n\n`
+        markup += commands.renderWithHTML(ctx.state.games, config.cn);
+        ctx.replyWithHTML(markup); 
+    } catch(e) {
+      console.log(e)
+    }
 })
 
 bot.command('standings', (ctx) => {
@@ -80,54 +77,14 @@ bot.command('standings', (ctx) => {
 })
 
 bot.command('live', async (ctx) => {
-  const title = 'NBA比赛数据';
   try {
+    const title = '*比赛场次ID*\n输入下面的数字获取实时数据';
     const games =  ctx.state.games;
-    const gameIds = games.map(game => game.gameId);
-    console.log(gameIds);
-    setTimeout(async () => {
-        const options = helper.getRequestOptions(`/gameDetails/${gameIds[1]}`, NBA_KEY);
-        const response = await axios.request(options);
-        const { 
-          city,
-          leadChanges,
-          currentPeriod,
-          clock,
-          statusGame,
-          vTeam: {
-            nickname: vNickname,
-            shortName: vShortname,
-            score: {
-              linescore: vLinescore,
-              points: vPoints
-            }
-          },
-          hTeam: {
-            nickname: hNickname,
-            shortName: hShortname,
-            score: {
-              linescore: hLinescore,
-              points: hPoints
-            }
-          }
-        } = await response.data.api.game[0];
-
-        const headings = `*${config.cn[vNickname]}  ${vPoints} - ${hPoints} ${config.cn[hNickname]}*\n`;
-        const statusPeriod = `\`${commands.getCurrentPeriod(statusGame, currentPeriod)} ${clock}\`\n`;
-        const linescoreH = `\`Team${commands.formatTextPeriod(helper.padStartStr)}\`\n`;
-        const v = `\`${vShortname} ${commands.getLineScore(vLinescore)}\`\n`;
-        const h = `\`${hShortname} ${commands.getLineScore(hLinescore)}\`\n`;
-        const replyHTML = `${headings}${statusPeriod}${linescoreH}${v}${h}`;
-        ctx.replyWithMarkdown(replyHTML);
-    }, 0)
+    const gameIds = games.map(game => game.gameId).join('\n');
+    ctx.replyWithMarkdown(`${title}\n\`${gameIds}\``);
   } catch (e) {
     console.log(e);
   }
-  ctx.reply(`${title}`);
-})
-
-bot.command('players', ctx => {
-  ctx.reply('🤞敬请期待！');
 })
 
 bot.command('currenttime', ctx => {
@@ -140,9 +97,40 @@ bot.start(ctx => {
   ctx.reply(`获取NBA当天比赛场次、东西部排名以及比赛详细数据等。\n\n👏 /\games - 获取当天比赛场次\n 👏 /\standings - 获取东西部排名`);
 });
 
-bot.on('text', (ctx) => {
-  const scores = ctx.db.getScores(ctx.message.chat.id)
-  return ctx.reply(`${ctx.state.role}: ${scores}`)
+bot.on('text', async (ctx) => {
+  if (typeof ctx.message.text === 'numebr') return;
+  const options = helper.getRequestOptions(`/gameDetails/${ctx.message.text}`, NBA_KEY);
+  const response = await axios.request(options);
+  const {
+    city,
+    leadChanges,
+    currentPeriod,
+    clock,
+    statusGame,
+    vTeam: {
+      nickname: vNickname,
+      shortName: vShortname,
+      score: { linescore: vLinescore, points: vPoints },
+    },
+    hTeam: {
+      nickname: hNickname,
+      shortName: hShortname,
+      score: { linescore: hLinescore, points: hPoints },
+    },
+  } = await response.data.api.game[0];
+
+  const headings = `*${config.cn[vNickname]}  ${vPoints} - ${hPoints} ${config.cn[hNickname]}*\n`;
+  const statusPeriod = `\`${commands.getCurrentPeriod(
+    statusGame,
+    currentPeriod
+  )} ${clock}\`\n`;
+  const linescoreH = `\`Team${commands.formatTextPeriod(
+    helper.padStartStr
+  )}\`\n`;
+  const v = `\`${vShortname} ${commands.getLineScore(vLinescore)}\`\n`;
+  const h = `\`${hShortname} ${commands.getLineScore(hLinescore)}\`\n`;
+  const replyHTML = `${headings}${statusPeriod}${linescoreH}${v}${h}`;
+  ctx.replyWithMarkdown(replyHTML);
 })
 
 process.env.NODE_ENV === 'production' ? production() : development();
