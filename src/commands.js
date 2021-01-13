@@ -26,9 +26,9 @@ const commands = {
     games
       .map(
         ({ vTeam, hTeam, statusGame }) =>
-          `${commands.getGameStatus(statusGame)} ${trans[vTeam["nickName"]]} <b>${
+          `${commands.getGameStatus(statusGame)} ${trans[vTeam["nickName"]]} *${
             vTeam.score.points
-          }</b> - <b>${hTeam.score.points}</b> ${trans[hTeam["nickName"]]}`
+          }* - *${hTeam.score.points}* ${trans[hTeam["nickName"]]}`
       )
       .join('\n\n'),
   //
@@ -37,15 +37,17 @@ const commands = {
   getLineScore: (linescores) => {
     if(linescores.length < 0) return;
     return linescores
-      .map(linescore => linescore)
+      .map(linescore => helper.padStartStr(linescore))
       .join(' ');
   },
+
   formatTextPeriod: (func) => {
     const periods = ['1', '2', '3', '4'];
     return periods
       .map(period => func(period))
       .join(' ');
   },
+
   getCurrentPeriod: (statusGame, period) => {
     let currentPeriod = ''
     if (statusGame === 'Finished') {
@@ -58,6 +60,7 @@ const commands = {
 
     return currentPeriod;
   },
+
   getLeaders: (leaders, delimeter) => {
     return leaders
       .filter(leader => leader.hasOwnProperty(delimeter))
@@ -65,6 +68,7 @@ const commands = {
         return parseInt(b[delimeter], 10) - parseInt(a[delimeter], 10);
       })[0]
   },
+
   getMaxLeaders: (leaders, delimeter) => {
     return `\`${helper.padStartStr(commands.getLeaders(leaders, delimeter)[delimeter])}\` ${commands.getLeaders(leaders, delimeter)['name']}`
   }

@@ -32,9 +32,9 @@ const production = function() {
 }
 
 const leaders = (leaders) => {
-  const points = `*得分*：${commands.getMaxLeaders(leaders, 'points')}\n`;
-  const assists = `*助攻*：${commands.getMaxLeaders(leaders, 'assists')}\n`;
-  const rebounds = `*篮板*：${commands.getMaxLeaders(leaders, 'rebounds')}\n\n`;
+  const points = `得分：${commands.getMaxLeaders(leaders, 'points')}\n`;
+  const assists = `助攻：${commands.getMaxLeaders(leaders, 'assists')}\n`;
+  const rebounds = `篮板：${commands.getMaxLeaders(leaders, 'rebounds')}\n\n`;
   return `${points}${assists}${rebounds}`;
 }
 
@@ -78,7 +78,7 @@ bot.command('games',(ctx) => {
     ctx.replyWithHTML('<b>🏀 今日NBA赛事情况</b>');
     let markup = `<b>客队 VS 主队</b>\n\n`
     markup += commands.renderWithHTML(ctx.state.games, config.cn);
-    ctx.replyWithHTML(markup); 
+    ctx.replyWithMarkdown(markup); 
   } catch(e) {
     console.log(e)
   }
@@ -125,19 +125,14 @@ bot.on('text', async (ctx) => {
     } = await response.data.api.game[0];
 
     const headings = `*${config.cn[vNickname]}  ${vPoints} - ${hPoints} ${config.cn[hNickname]}*\n`;
-    const statusPeriod = `\`${commands.getCurrentPeriod(
-      statusGame,
-      currentPeriod
-    )} ${clock}\`\n`;
-    const linescoreH = `\`Team${commands.formatTextPeriod(
-      helper.padStartStr
-    )}\`\n`;
-    const v = `\`${vShortname} ${commands.getLineScore(vLinescore)}\`\n`;
-    const h = `\`${hShortname} ${commands.getLineScore(hLinescore)}\`\n\n`;
-    const l = `*本场最佳*\n\n`
+    const statusPeriod = `\n\`${commands.getCurrentPeriod(statusGame, currentPeriod)} ${clock}\`\n`;
+    const linescoreHeadings = `\n\`Team${commands.formatTextPeriod(helper.padStartStr)} Total\`\n`;
+    const v = `\`${vShortname} ${commands.getLineScore(vLinescore)} ${vPoints}\`\n`;
+    const h = `\`${hShortname} ${commands.getLineScore(hLinescore)} ${hPoints}\`\n`;
+    const l = `\n*本场最佳*\n\n`
     const vL = `*${config.cn[vNickname]}*👇\n\n${leaders(vLeaders)}`;
     const hL = `*${config.cn[hNickname]}*👇\n\n${leaders(hLeaders)}`;
-    ctx.replyWithMarkdown(`${headings}${statusPeriod}${linescoreH}${v}${h}${l}${vL}${hL}`);
+    ctx.replyWithMarkdown(`${headings}${statusPeriod}${linescoreHeadings}${v}${h}${l}${vL}${hL}`);
   } catch(e) {
     console.log(e);
   }
