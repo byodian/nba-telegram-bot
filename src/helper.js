@@ -1,6 +1,7 @@
 const helper = {
 
-  getRequestOptions: (endpoint, NBA_KEY) => {
+  getRequestOptions(endpoint, NBA_KEY) {
+    
     return {
       method: "GET",
       url: `https://api-nba-v1.p.rapidapi.com${endpoint}`,
@@ -15,7 +16,7 @@ const helper = {
    * @param {Array} teams NBA teams message from API (GET /games/league/)
    * response.api.teams
    */
-  getNickName: (teams) => {
+  getNickName(teams) {
     obj = {};
     teams
       .filter(
@@ -37,7 +38,7 @@ const helper = {
    * @param {Array} standings NBA teams standings message for API Get /standings/
    * @param {String} area NBA teams conference name
    */
-  sortStandings: (standings, area) => {
+  sortStandings(standings, area) {
     if (!standings.length < 0) return;
     return standings
       .filter(({ conference: { name } }) => name === area)
@@ -46,11 +47,11 @@ const helper = {
       });
   },
 
-  padEndStr: (str, num = 9, delimeter = ' ') => {
+  padEndStr(str, num = 9, delimeter = ' ') {
     return Number(str) <= num ? str.padEnd(2, delimeter) : str;
   },
 
-  padStartStr: (str, len = 1, delimeter = ' ') => {
+  padStartStr(str, len = 1, delimeter = ' ') {
     return str.length <= len ? str.padStart(2, delimeter) : str;
   },
 
@@ -58,7 +59,7 @@ const helper = {
    *
    * @param {Array} standings  Sorted NBA standings
    */
-  getSortedTeams: (standings, enTeams, cnTeams) => {
+  getSortedTeams(standings, enTeams, cnTeams) {
     return standings
       .map(
         ({ teamId, conference: { rank }, win, loss, winPercentage }) =>
@@ -68,7 +69,7 @@ const helper = {
       )
       .join("");
   },
-  getUTCMoment: () => {
+  getUTCMoment() {
     const date = new Date();
 
     return {
@@ -81,21 +82,23 @@ const helper = {
     };
   },
 
-  getGMTMoment: (offset = 8) => {
+  getGMTMoment(offset = 8) {
     if (!offset === 'number') return;
+    const temp = this.getUTCMoment().hours + offset;
+    const hoursGMT = temp > 24 ? temp - 24 : temp;
     return {
-      hours: helper.getUTCMoment().hours + offset,
+      hours: hoursGMT,
       minutes: helper.getUTCMoment().minutes
     }
   },
 
-  formatDate: (num, delimeter = 10) => {
+  formatDate(num, delimeter = 10) {
     if (!typeof num === "number") return;
     if (!typeof delimeter === "number") return;
     return num < delimeter ? `0${num}` : `${num}`;
   },
 
-  getLocalMoment: (timeOffset = 8) => {
+  getLocalMoment(timeOffset = 8) {
     if (!typeof timeOffset === "number") return;
     if (!typeof utcMoment === "object") return;
 

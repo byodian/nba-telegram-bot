@@ -4,7 +4,7 @@ const commands = {
   //
   // games command code
   //
-  getGameStatus: (statusGame) => {
+  getGameStatus(statusGame) {
     let = emojiGame = '';
     if (statusGame === 'Finished') {
       emojiGame = '👏';
@@ -22,38 +22,39 @@ const commands = {
    * @param {Object} games games message GET /games/date/endpoint/
    * @param {Object} trans Translate English team nickname into chinese team nickname
    */
-  renderWithHTML: (games, trans) =>
-    games
+  renderWithHTML(games, trans) {
+    return games
       .map(
-        ({ vTeam, hTeam, statusGame }) =>
-          `${commands.getGameStatus(statusGame)} ${trans[vTeam["nickName"]]} *${
+        ({ vTeam, hTeam, statusGame, clock, startTimeUTC, currentPeriod }) =>
+          `${this.getGameStatus(statusGame)} ${trans[vTeam["nickName"]]} *${
             vTeam.score.points
-          }* - *${hTeam.score.points}* ${trans[hTeam["nickName"]]}`
+          }* - *${hTeam.score.points}* ${trans[hTeam["nickName"]]} ${this.getCurrentPeriod(statusGame, currentPeriod)} ${statusGame === 'Scheduled' ? '' : clock}`
       )
-      .join('\n\n'),
+      .join('\n\n')
+  },
   //
   // live
   //
-  getLineScore: (linescores) => {
+  getLineScore(linescores) {
     if(linescores.length < 0) return;
     return linescores
       .map(linescore => helper.padStartStr(linescore))
       .join(' ');
   },
 
-  formatTextPeriod: (func) => {
+  formatTextPeriod(func) {
     const periods = ['1', '2', '3', '4'];
     return periods
       .map(period => func(period))
       .join(' ');
   },
 
-  getCurrentPeriod: (statusGame, period) => {
+  getCurrentPeriod(statusGame, period) {
     let currentPeriod = ''
     if (statusGame === 'Finished') {
       currentPeriod = '已结束';
     } else if (statusGame === 'Scheduled') {
-      currentPeriod = '未开始';
+      currentPeriod = '未开始/延迟';
     } else {
       currentPeriod = `第 ${period[0]} 节`;
     }
@@ -61,16 +62,14 @@ const commands = {
     return currentPeriod;
   },
 
-  getLeaders: (leaders, delimeter) => {
+  getLeaders(leaders, delimeter) {
     return leaders
       .filter(leader => leader.hasOwnProperty(delimeter))
-      .sort(function(a, b) {
-        return parseInt(b[delimeter], 10) - parseInt(a[delimeter], 10);
-      })[0]
+      .sort((a, b) => parseInt(b[delimeter], 10) - parseInt(a[delimeter], 10))[0]
   },
 
-  getMaxLeaders: (leaders, delimeter) => {
-    return `\`${helper.padStartStr(commands.getLeaders(leaders, delimeter)[delimeter])}\` ${commands.getLeaders(leaders, delimeter)['name']}`
+  getMaxLeaders(leaders, delimeter) {
+    return `\`${helper.padStartStr(this.getLeaders(leaders, delimeter)[delimeter])}\` ${this.getLeaders(leaders, delimeter)['name']}`
   }
 }
 

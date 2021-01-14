@@ -48,7 +48,7 @@ bot.start(ctx => {
 bot.command('currenttime', ctx => {
   const { hours: UTCHours, minutes: UTCMinutes } = helper.getUTCMoment();
   const { hours: GMTHours, minutes: GMTMinutes } = helper.getGMTMoment();
-  ctx.reply(`世界标准时间 ${UTCHours}:${helper.formatDate(UTCMinutes)} | 中国时间 ${GMTHours}:${helper.formatDate(GMTMinutes)}`);
+  ctx.reply(`世界标准时间 ${UTCHours}:${helper.formatDate(UTCMinutes)} - 中国时间 ${GMTHours}:${helper.formatDate(GMTMinutes)}`);
 })
 
 bot.command('standings', async (ctx) => {
@@ -75,8 +75,8 @@ bot.use(async (ctx, next) => {
 
 bot.command('games',(ctx) => {
   try {
-    ctx.replyWithHTML('<b>🏀 今日NBA赛事情况</b>');
-    let markup = `<b>客队 VS 主队</b>\n\n`
+    ctx.replyWithMarkdown('*🏀 今日NBA赛事情况*');
+    let markup = `*客队 - 主队*\n\n`
     markup += commands.renderWithHTML(ctx.state.games, config.cn);
     ctx.replyWithMarkdown(markup); 
   } catch(e) {
@@ -124,15 +124,23 @@ bot.on('text', async (ctx) => {
       },
     } = await response.data.api.game[0];
 
-    const headings = `*${config.cn[vNickname]}  ${vPoints} - ${hPoints} ${config.cn[hNickname]}*\n`;
     const statusPeriod = `\n\`${commands.getCurrentPeriod(statusGame, currentPeriod)} ${clock}\`\n`;
-    const linescoreHeadings = `\n\`Team${commands.formatTextPeriod(helper.padStartStr)} Total\`\n`;
-    const v = `\`${vShortname} ${commands.getLineScore(vLinescore)} ${vPoints}\`\n`;
-    const h = `\`${hShortname} ${commands.getLineScore(hLinescore)} ${hPoints}\`\n`;
-    const l = `\n*本场最佳*\n\n`
-    const vL = `*${config.cn[vNickname]}*👇\n\n${leaders(vLeaders)}`;
-    const hL = `*${config.cn[hNickname]}*👇\n\n${leaders(hLeaders)}`;
-    ctx.replyWithMarkdown(`${headings}${statusPeriod}${linescoreHeadings}${v}${h}${l}${vL}${hL}`);
+
+    if (statusGame === 'Scheduled') {
+    	console.log(statusGame);
+    	ctx.replyWithMarkdown(`*${config.cn[vNickname]} - ${config.cn[hNickname]}*${statusPeriod}`);
+    } else {
+    	console.log(statusGame);	
+	    const headings = `*${config.cn[vNickname]} ${vPoints} - ${hPoints} ${config.cn[hNickname]}*\n`;	
+	    const linescoreHeadings = `\n\`Team${commands.formatTextPeriod(helper.padStartStr)} Total\`\n`;
+		const v = `\`${vShortname} ${commands.getLineScore(vLinescore)} ${vPoints}\`\n`;
+		const h = `\`${hShortname} ${commands.getLineScore(hLinescore)} ${hPoints}\`\n`;
+		const l = `\n*本场最佳*\n\n`
+		const vL = `*${config.cn[vNickname]}*👇\n\n${leaders(vLeaders)}`;
+		const hL = `*${config.cn[hNickname]}*👇\n\n${leaders(hLeaders)}`;
+	    ctx.replyWithMarkdown(`${headings}${statusPeriod}${linescoreHeadings}${v}${h}${l}${vL}${hL}`);
+    }
+
   } catch(e) {
     console.log(e);
   }
