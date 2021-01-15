@@ -85,7 +85,7 @@ const helper = {
   getGMTMoment(offset = 8) {
     if (!offset === 'number') return;
     const temp = this.getUTCMoment().hours + offset;
-    const hoursGMT = temp > 24 ? temp - 24 : temp;
+    const hoursGMT = temp >= 24 ? temp - 24 : temp;
     return {
       hours: hoursGMT,
       minutes: helper.getUTCMoment().minutes

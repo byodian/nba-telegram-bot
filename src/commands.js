@@ -16,6 +16,18 @@ const commands = {
 
     return emojiGame;
   },
+
+  getStartTime(startTimeUTC) {
+  	const regx = /(^\d+-\d+-\d+[A-z])|(:\d+\.\d+[A-Z])/g;
+  	const localTime = startTimeUTC
+  		.replace(regx, '')
+  		.split(':')
+  		.map(num => parseInt(num, 10));
+
+  	const hours = localTime[0] + 8 >= 24 ? localTime[0] + 8 - 24 : localTime[0] + 8;
+  	const minutes = localTime[1];
+  	return `${helper.formatDate(hours)}:${helper.formatDate(minutes)}`;
+  },
   
   /**
    * 
@@ -26,7 +38,7 @@ const commands = {
     return games
       .map(
         ({ vTeam, hTeam, statusGame, clock, startTimeUTC, currentPeriod }) =>
-          `${this.getGameStatus(statusGame)} ${trans[vTeam["nickName"]]} *${
+          `${this.getStartTime(startTimeUTC)} ${trans[vTeam["nickName"]]} *${
             vTeam.score.points
           }* - *${hTeam.score.points}* ${trans[hTeam["nickName"]]} ${this.getCurrentPeriod(statusGame, currentPeriod)} ${statusGame === 'Scheduled' ? '' : clock}`
       )
