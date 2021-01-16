@@ -69,9 +69,14 @@ const helper = {
       )
       .join("");
   },
+
+  correntDay(day) {
+    if (day === 32) return day - 31;
+    return day;
+  },
+
   getUTCMoment() {
     const date = new Date();
-
     return {
       year: date.getUTCFullYear(),
       month: date.getUTCMonth(),
@@ -85,10 +90,15 @@ const helper = {
   getGMTMoment(offset = 8) {
     if (!offset === 'number') return;
     const temp = this.getUTCMoment().hours + offset;
+
     const hoursGMT = temp >= 24 ? temp - 24 : temp;
+    const dayOfMonth = temp >= 24 ? this.correntDay(this.getUTCMoment().dayOfMonth + 1) : this.getUTCMoment().dayOfMonth;
     return {
+      year: this.getUTCMoment().year,
+      month: this.getUTCMoment().month + 1,
+      day: dayOfMonth,
       hours: hoursGMT,
-      minutes: helper.getUTCMoment().minutes
+      minutes: this.getUTCMoment().minutes
     }
   },
 
@@ -100,21 +110,9 @@ const helper = {
 
   getLocalMoment(timeOffset = 8) {
     if (!typeof timeOffset === "number") return;
-    if (!typeof utcMoment === "object") return;
-
-    let formatDay = '';
-    const { year, month, dayOfMonth: day, hours } = helper.getUTCMoment();
-
-    const formatMonth = helper.formatDate(month + 1);
-    if (hours < 24 - timeOffset) {
-      formatDay = helper.formatDate(day); 
-    } else {
-      formatDay = helper.formatDate(day + 1);
-    }
-
-    return `${year}-${formatMonth}-${formatDay}`
+    const { year, month, day} = this.getGMTMoment();
+    return `${year}-${this.formatDate(month)}-${this.formatDate(day)}`
   },
-
 };
 
 module.exports.helper = helper;
