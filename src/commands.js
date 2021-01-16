@@ -4,19 +4,6 @@ const commands = {
   //
   // games command code
   //
-  getGameStatus(statusGame) {
-    let = emojiGame = '';
-    if (statusGame === 'Finished') {
-      emojiGame = '👏';
-    } else if (statusGame === 'Scheduled') {
-      emojiGame ='👉';
-    } else {
-      emojiGame ='🔥';
-    }
-
-    return emojiGame;
-  },
-
   getStartTime(startTimeUTC) {
   	const regx = /(^\d+-\d+-\d+[A-z])|(:\d+\.\d+[A-Z])/g;
   	const localTime = startTimeUTC
@@ -34,7 +21,7 @@ const commands = {
    * @param {Object} games games message GET /games/date/endpoint/
    * @param {Object} trans Translate English team nickname into chinese team nickname
    */
-  renderWithHTML(games, trans) {
+  displayGames(games, trans) {
     return games
       .map(
         ({ vTeam, hTeam, statusGame, clock, startTimeUTC, currentPeriod }) =>
@@ -54,10 +41,26 @@ const commands = {
       .join(' ');
   },
 
-  formatTextPeriod(func) {
-    const periods = ['1', '2', '3', '4'];
+  overtime(times) {
+    const OT = [];
+    for(let i = 0; i < times; i++) {
+      OT.push('OT');
+    }
+
+    return OT;
+  },
+
+  periods(linescores) {
+    if(linescores.length <= 0) return;
+    let periods = ['1', '2', '3', '4'];
+    const len = linescores.length - periods.length;
+    return periods.concat(this.overtime(len));
+  },
+
+  styledPeriods(callback, linescores) {
+    const periods = this.periods(linescores);
     return periods
-      .map(period => func(period))
+      .map(period => callback(period))
       .join(' ');
   },
 
@@ -74,14 +77,14 @@ const commands = {
     return currentPeriod;
   },
 
-  getLeaders(leaders, delimeter) {
+  leaders(leaders, delimeter) {
     return leaders
       .filter(leader => leader.hasOwnProperty(delimeter))
       .sort((a, b) => parseInt(b[delimeter], 10) - parseInt(a[delimeter], 10))[0]
   },
 
-  getMaxLeaders(leaders, delimeter) {
-    return `\`${helper.padStartStr(this.getLeaders(leaders, delimeter)[delimeter])}\` ${this.getLeaders(leaders, delimeter)['name']}`
+  maxLeader(leaders, delimeter) {
+    return `\`${helper.padStartStr(this.leaders(leaders, delimeter)[delimeter])}\` ${this.leaders(leaders, delimeter)['name']}`
   }
 }
 

@@ -31,10 +31,10 @@ const production = function() {
   app.use(bot.webhookCallback(`/bot${BOT_TOKEN}`));
 }
 
-const leaders = (leaders) => {
-  const points = `得分：${commands.getMaxLeaders(leaders, 'points')}\n`;
-  const assists = `助攻：${commands.getMaxLeaders(leaders, 'assists')}\n`;
-  const rebounds = `篮板：${commands.getMaxLeaders(leaders, 'rebounds')}\n\n`;
+const gameLeaders = (leaders) => {
+  const points = `得分：${commands.maxLeader(leaders, 'points')}\n`;
+  const assists = `助攻：${commands.maxLeader(leaders, 'assists')}\n`;
+  const rebounds = `篮板：${commands.maxLeader(leaders, 'rebounds')}\n\n`;
   return `${points}${assists}${rebounds}`;
 }
 
@@ -77,7 +77,7 @@ bot.command('games',(ctx) => {
   try {
     ctx.replyWithMarkdown('*🏀 今日NBA赛事情况*');
     let markup = `*客队 - 主队*\n\n`
-    markup += commands.renderWithHTML(ctx.state.games, config.cn);
+    markup += commands.displayGames(ctx.state.games, config.cn);
     ctx.replyWithMarkdown(markup); 
   } catch(e) {
     console.log(e)
@@ -105,8 +105,6 @@ bot.on('text', async (ctx) => {
     const options = helper.getRequestOptions(`/gameDetails/${ctx.message.text}`, NBA_KEY);
     const response = await axios.request(options);
     const {
-      city,
-      leadChanges,
       currentPeriod,
       clock,
       statusGame,
@@ -127,17 +125,15 @@ bot.on('text', async (ctx) => {
     const statusPeriod = `\n\`${commands.getCurrentPeriod(statusGame, currentPeriod)} ${clock}\`\n`;
 
     if (statusGame === 'Scheduled') {
-    	console.log(statusGame);
     	ctx.replyWithMarkdown(`*${config.cn[vNickname]} - ${config.cn[hNickname]}*${statusPeriod}`);
     } else {
-    	console.log(statusGame);	
 	    const headings = `*${config.cn[vNickname]} ${vPoints} - ${hPoints} ${config.cn[hNickname]}*\n`;	
-	    const linescoreHeadings = `\n\`Team${commands.formatTextPeriod(helper.padStartStr)} Total\`\n`;
-		const v = `\`${vShortname} ${commands.getLineScore(vLinescore)} ${vPoints}\`\n`;
-		const h = `\`${hShortname} ${commands.getLineScore(hLinescore)} ${hPoints}\`\n`;
-		const l = `\n*本场最佳*\n\n`
-		const vL = `*${config.cn[vNickname]}*👇\n\n${leaders(vLeaders)}`;
-		const hL = `*${config.cn[hNickname]}*👇\n\n${leaders(hLeaders)}`;
+	    const linescoreHeadings = `\n\`Team${commands.styledPeriods(helper.padStartStr, vLinescore)} Total\`\n`;
+      const v = `\`${vShortname} ${commands.getLineScore(vLinescore)} ${vPoints}\`\n`;
+      const h = `\`${hShortname} ${commands.getLineScore(hLinescore)} ${hPoints}\`\n`;
+      const l = `\n*本场最佳*\n\n`
+      const vL = `*${config.cn[vNickname]}*👇\n\n${gameLeaders(vLeaders)}`;
+      const hL = `*${config.cn[hNickname]}*👇\n\n${gameLeaders(hLeaders)}`;
 	    ctx.replyWithMarkdown(`${headings}${statusPeriod}${linescoreHeadings}${v}${h}${l}${vL}${hL}`);
     }
 
