@@ -13,7 +13,10 @@ const commands = {
 
   	const hours = localTime[0] + 8 >= 24 ? localTime[0] + 8 - 24 : localTime[0] + 8;
   	const minutes = localTime[1];
-  	return `${helper.formatDate(hours)}:${helper.formatDate(minutes)}`;
+  	return {
+			time: `${helper.formatDate(hours)}:${helper.formatDate(minutes)}`,
+			hour: localTime[0] + 8
+		};
   },
   
   /**
@@ -23,9 +26,8 @@ const commands = {
    */
   displayGames(games, trans) {
     return games
-      .map(
-        ({ vTeam, hTeam, statusGame, clock, startTimeUTC, currentPeriod }) =>
-          `${this.getStartTime(startTimeUTC)} ${trans[vTeam["nickName"]]} *${
+      .map(({ vTeam, hTeam, statusGame, clock, startTimeUTC, currentPeriod }) =>
+           `${this.getStartTime(startTimeUTC).time} ${trans[vTeam["nickName"]]} *${
             vTeam.score.points
           }* - *${hTeam.score.points}* ${trans[hTeam["nickName"]]} ${this.getCurrentPeriod(statusGame, currentPeriod)} ${statusGame === 'Scheduled' ? '' : clock}`
       )
@@ -69,7 +71,7 @@ const commands = {
     if (statusGame === 'Finished') {
       currentPeriod = '已结束';
     } else if (statusGame === 'Scheduled') {
-      currentPeriod = '未开始/延迟';
+      currentPeriod = '未开始';
     } else {
       currentPeriod = `第 ${period[0]} 节`;
     }

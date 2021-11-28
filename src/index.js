@@ -38,9 +38,7 @@ const gameLeaders = (leaders) => {
   return `${points}${assists}${rebounds}`;
 }
 
-//
 // Command
-//
 bot.start(ctx => {
   ctx.reply(`获取NBA当天比赛场次、东西部排名以及比赛详细数据等。\n\n👏 /\games - 获取当天比赛场次\n👏 /\standings - 获取东西部排名`);
 });
@@ -53,7 +51,17 @@ bot.command('currenttime', ctx => {
 
 bot.command('standings', async (ctx) => {
   ctx.reply('👏 NBA积分情况');
-  const options = helper.getRequestOptions(`/standings/standard/2020`, NBA_KEY);
+	let season
+	const { month, year } = helper.getUTCMoment();
+	// 比如今年是 2021年，则前半年为 2020 赛季，后半年为 2021 赛季
+	// NBA 一般 10月份为下一个赛季的季前赛
+	// 所以以 10月份为分界线，获取不同赛季的数据
+	if (month + 1 > 9 ) {
+		season = year	
+	} else {
+		season = year - 1 
+	}
+  const options = helper.getRequestOptions(`/standings/standard/${season}`, NBA_KEY);
   try {
     const response = await axios.request(options);
     const { standings } = await response.data.api;
@@ -66,18 +74,36 @@ bot.command('standings', async (ctx) => {
   }
 })
 
+const isCurDayGame = ({ startTimeUTC }) => commands.getStartTime(startTimeUTC).hour <= 24
+
+const filterGames = function (games = []) {
+	return 	games.filter()
+}
+
 bot.use(async (ctx, next) => {
-  const teamIdOptions = helper.getRequestOptions(`/games/date/${helper.getLocalMoment()}`, NBA_KEY);
-  const response = await axios.request(teamIdOptions);
-  ctx.state.games = await response.data.api.games;
-  return next()
+	const {year, month, day }  = helper.getGMTMoment()
+
+	try {
+		const lastTeamIdOptions = helper.getRequestOptions(`/games/date/${year}-${month}-${day - 1}`, NBA_KEY);
+		const lastGames = (await axios.request(lastTeamIdOptions)).data.api.games
+		ctx.state.games = lastGames.filter(game => !isCurDayGame(game))
+
+		const teamIdOptions = helper.getRequestOptions(`/games/date/${helper.getLocalMoment()}`, NBA_KEY);
+		const response = await axios.request(teamIdOptions);
+		ctx.state.games = ctx.state.games.concat(response.data.api.games.filter(isCurDayGame));
+		
+		return next()
+	}	catch(e) {
+		console.log(e.message)
+	}
+				
+	
 })
 
 bot.command('games',(ctx) => {
   try {
-    ctx.replyWithMarkdown('*🏀 今日NBA赛事情况*');
-    let markup = `*客队 - 主队*\n\n`
-    markup += commands.displayGames(ctx.state.games, config.cn);
+		let markup = `${helper.getLocalMoment()}\n\n**客队vs主队**\n\n`
+		markup += commands.displayGames(ctx.state.games, config.cn);
     ctx.replyWithMarkdown(markup); 
   } catch(e) {
     console.log(e)

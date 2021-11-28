@@ -93,6 +93,7 @@ const helper = {
 
     const hoursGMT = temp >= 24 ? temp - 24 : temp;
     const dayOfMonth = temp >= 24 ? this.correntDay(this.getUTCMoment().dayOfMonth + 1) : this.getUTCMoment().dayOfMonth;
+
     return {
       year: this.getUTCMoment().year,
       month: this.getUTCMoment().month + 1,
